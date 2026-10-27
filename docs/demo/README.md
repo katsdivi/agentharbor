@@ -2,6 +2,8 @@
 
 | File | What it is |
 |---|---|
+| [`agentharbor-product-film.mp4`](agentharbor-product-film.mp4) | **Product film**, 56 s, 1920×1080, H.264, 30 fps, with voice-over, music and sound effects (AAC stereo, −16 LUFS). An edited, art-directed cut of the same run (see [Product film](#product-film)). |
+| [`agentharbor-product-film-poster.png`](agentharbor-product-film-poster.png) | Poster for the README. It links to the film. |
 | [`agentharbor-demo-presentation.mp4`](agentharbor-demo-presentation.mp4) | 63 s presentation cut, 1920×1080, H.264, no audio. Captions; one span slowed 4× (labeled); two cuts (each shown as a `[cut]` card); one held frame (labeled). |
 | [`agentharbor-demo-full-chronological.mp4`](agentharbor-demo-full-chronological.mp4) | 71 s. Both workers in **real time, unedited except redactions**, between a title card, a worker-transition card and an end card. |
 | [`account-created.png`](account-created.png), [`restored-session.png`](restored-session.png) | Screenshots taken by the plugin (`browser_screenshot`) during the same run. |
@@ -55,3 +57,55 @@ Limitations:
 ## How the cuts were made
 
 ffmpeg 8.0.1 on the raw `.webm` files: solid-box redaction, H.264 re-encode at 30 fps, then caption and title cards (PNG, rendered with Pillow) overlaid and joined. The presentation cut removes about 10 s of idle time on the confirmation page and about 7 s of blank page at the start of worker 2, shows the 2-second form fill slowed 4×, and holds the restored-session frame for 3 s. Each of these edits is labeled on screen. The raw `.webm` files are not in the repository.
+
+## Product film
+
+`agentharbor-product-film.mp4` (56.0 s, 1680 frames) is an edited cut of the recorded run above, made for presentations. Its source is in [`video/`](../../video/README.md) (Remotion 4). It shows no other run and no other site. The chronological recording stays the evidence; the film is not a substitute for it.
+
+**Structure**
+
+| Time | Act | Footage used (worker, time in the raw recording) |
+|---|---|---|
+| 0–5.5 s | Opening: "Give agents a place to work." | Worker 1, raw 15.5 s onward: the login page, then signed in |
+| 5.5–18 s | 01 Signup: "From signup to signed in." | Worker 1: the filled signup form (still), Create Account (still), the "Account Created!" page (video from raw 2.45 s) |
+| 18–31 s | 02 Session: logout and log back in; save and close | Worker 1, raw 15.2–17.2 s at **0.5×**; logged-in nav (still); then an **illustrative diagram** |
+| 31–44 s | Hero: "A new browser. The session continues." | Worker 1 last frame (still, dimmed, "closed"); Worker 2, 7.3–7.82 s at **0.5×**, then a **held frame** at 7.82 s with a slow push-in on "Logged in as Alex Demo" |
+| 44–50 s | 03 Cleanup: "Complete the task. Clean up." | Worker 2 from 7.62 s (delete click, "Account Deleted!"), then 16.42 s onward (login refused), then a still |
+| 50–56 s | End lockup | — |
+
+**Edits, disclosed:**
+- Cuts. Most idle time is removed: about 11 s on the confirmation page, about 7 s of blank page at the start of worker 2, and the waits between steps.
+- Speed. Two spans run at 0.5×, each marked with a "0.5×" badge in the browser frame. No success state is sped up.
+- Stills and held frames. The form close-ups, the logged-in nav, the hero hold and the final refused-login frame are stills taken from the redacted recording.
+- Labels. A persistent "Edited demo" label and a "Demo: local mode · AutomationExercise" label are on screen throughout the footage.
+- Illustration. The Agent → AgentHarbor → Browser diagram is an **illustration**, labeled as such, not captured telemetry. The events it shows (`session_save_state`, 2 cookies, encrypted; `session_close`) are the real calls and results from the run log.
+- Tool names. Every tool name, argument and status in the film comes from the run log: `account_register` (mode `local`), `job_status` (`completed`, outcome `confirmed`), `browser_fill` (`secret: "account_password"`), `session_save_state`, `session_close`, `session_start` (`restoreState: true`), `account_delete` (`deleteInbox: true`) and `session_status`. "0 credential fills in worker 2" is the call count for the restore.
+- Not shown, because there is no footage of it: the fields being typed. Signup page 2 was already filled in the first frame the film may use (see Privacy), so the film shows the filled fields and does not imply live typing.
+
+**Privacy in the film.** The composition reads only *redacted masters*, never the raw recordings:
+- The login email field is filled with its own background colour (`#EEEDE6`) on exactly the frames where the login page is visible. Those frames were detected from the page's orange "OR" badge: worker 1 frames 384–400, worker 2 frames 410–605.
+- A small "email hidden" note marks the field in the film.
+- Worker 1's first 40 frames (signup step 1 and the top of page 2, where the address appears in other fields) are dropped entirely.
+- An automated check confirmed that the email field holds no text pixels on any login-page frame of either master. The scripts are in `video/scripts/`.
+- No field contents were replaced with invented values; the field was emptied and is labeled.
+
+**Reference treatment.** The art direction draws mainly on a public Pinterest motion piece (pin 961166745494526510, a SaaS UI explainer by CreativeHarshit), which was viewed for study only. The film borrows its alternating light and dark acts, focus-pull reveals, condensed sticker labels, a single teal light sweep at act breaks, and horizontal-blur whips. Two other pins (703756189701217, a floating product-UI render, and 873768765227982709, a CGI camera launch) informed the slow camera moves and the macro close-ups of real screens. No footage, branding or audio from the references is used. The AgentHarbor mark is original.
+
+**Audio.** Voice-over, music and sound effects, all generated with ElevenLabs by the project author (voice: Eleven v4; music: Eleven Music v2.5, a 56 s instrumental; effects: text-to-sound v2). The sources are in [`video/public/audio/`](../../video/public/audio/) and the mix is defined in [`video/src/Soundtrack.tsx`](../../video/src/Soundtrack.tsx).
+- **Voice-over script**, one line per act, each placed inside the act it describes:
+  1. "Give agents a place to work."
+  2. "Here, Claude uses AgentHarbor to create a test account with a synthetic profile. It fills the form, submits it, and checks the confirmation. No human typing or clicking."
+  3. "Next, it logs out and back in using the stored credentials."
+  4. "AgentHarbor saves the encrypted browser state. Then the first worker shuts down."
+  5. "A fresh worker starts and restores the login without entering credentials again. New browser, same session, no password déjà vu."
+  6. "Finally, it deletes the website account, verifies that login fails, and removes the local account record and inbox."
+  7. "AgentHarbor: account workflows that agents can carry forward."
+- Every factual claim in the script matches the run log above. Line 7's pause after "AgentHarbor" was shortened from 1.2 s to about 0.5 s so the line ends before the film does; no other line was edited or retimed.
+- The music ducks by about 8 dB under each voice line. Effects: a whoosh on each act transition, a soft tick as each tool chip or check appears, a chime on "Account Created", "SIGNED IN" and the restored session, and a resolve on the end lockup. They are sound design, not recorded UI sounds; the recording itself has no audio.
+- Mastered with two-pass `loudnorm` to −16 LUFS integrated, −1.5 dBTP (`video/scripts/master-audio.sh`). Picture is unchanged from the silent cut. The on-screen text still carries the story on mute.
+
+**Limitations of the film**
+- It is an edit of one local-mode run on one practice site. It does not show remote or Apify execution, email verification, CAPTCHA handling or other sites.
+- Close-ups enlarge 1080p browser footage by up to about 2.5×, so small site text is legible but soft.
+- Frame accuracy was checked on sampled frames (every transition at 10–30 fps, and the whole film at 2–5 fps) and by an independent frame review. The film was not watched in a video player.
+- The soundtrack was checked by measurement, not by ear: a speech-to-text pass over the final mix recovers every voice-over line verbatim and at its planned time, loudness is −16.0 LUFS with −1.5 dBTP true peak, and no two voice lines overlap.

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="480" viewBox="0 0 600 480" role="img" aria-label="Session restore, illustrated: worker 1 saves 2 cookies into the encrypted vault and closes; a new worker 2 starts with them and is logged in as Alex Demo with zero credential fills." font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif">
+<title>Session restore, illustrated: worker 1 saves 2 cookies into the encrypted vault and closes; a new worker 2 starts with them and is logged in as Alex Demo with zero credential fills.</title>
+<rect x="1" y="1" width="598" height="478" rx="22" fill="#0B0F14" stroke="#263040" stroke-width="1.5"/>
+<text x="36" y="56" font-size="13" font-weight="700" letter-spacing="1.6" fill="#8B95A3">SESSION RESTORE · ILLUSTRATION OF THE RECORDED RUN</text>
+<text x="36" y="96" font-size="30" font-weight="800" letter-spacing="-1" fill="#F4F3EF">A new browser. The session continues.</text>
+<text x="40" y="146" font-size="11.5" font-weight="700" letter-spacing="1.2" fill="#8B95A3">WORKER 1 · CLOSED</text>
+<g>
+  <rect x="36" y="154" width="196" height="120" rx="14" fill="#141B24" stroke="#263040"/>
+  <circle cx="56" cy="173" r="4.5" fill="#4A5361"/><circle cx="71" cy="173" r="4.5" fill="#4A5361"/><circle cx="86" cy="173" r="4.5" fill="#4A5361"/>
+  <rect x="106" y="163" width="118" height="20" rx="6" fill="#0F141B"/>
+  <text x="114" y="177" font-size="9" fill="#8B95A3">automationexercise.com</text>
+  <rect x="37" y="192" width="194" height="81" rx="0" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="37" y="260" width="194" height="13" rx="13" fill="#FFFFFF" opacity="0.35"/>
+  <rect x="52" y="210" width="120" height="8" rx="4" fill="#C9CDD3"/><rect x="52" y="226" width="150" height="8" rx="4" fill="#DDE0E4"/>
+</g>
+<text x="368" y="146" font-size="11.5" font-weight="700" letter-spacing="1.2" fill="#F4F3EF">WORKER 2 · NEW PROCESS</text>
+<g>
+  <rect x="368" y="154" width="196" height="120" rx="14" fill="#141B24" stroke="#263040"/>
+  <circle cx="388" cy="173" r="4.5" fill="#FF5F57"/><circle cx="403" cy="173" r="4.5" fill="#FEBC2E"/><circle cx="418" cy="173" r="4.5" fill="#28C840"/>
+  <rect x="438" y="163" width="118" height="20" rx="6" fill="#0F141B"/>
+  <text x="446" y="177" font-size="9" fill="#8B95A3">automationexercise.com</text>
+  <rect x="369" y="192" width="194" height="81" rx="0" fill="#FFFFFF" opacity="1"/>
+  <rect x="369" y="260" width="194" height="13" rx="13" fill="#FFFFFF" opacity="1"/>
+  <g opacity="0"><animate attributeName="opacity" dur="5.5s" repeatCount="indefinite" keyTimes="0;0.74;0.8;0.97;1" values="0;0;1;1;0"/>
+      <circle cx="392" cy="226" r="9" fill="#22C9A0"/><path d="M387.5 226.5 l3.2 3.2 l5.6 -6.4" stroke="#0B0F14" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="408" y="230" font-size="12.5" fill="#2B2F36">Logged in as <tspan font-weight="700">Alex Demo</tspan></text></g>
+</g>
+<path d="M134 276 C 134 300, 180 300, 236 300 L 364 300 C 420 300, 466 300, 466 276" fill="none" stroke="#3A4555" stroke-width="1.5" stroke-dasharray="4 6"/>
+<rect x="236" y="276" width="128" height="48" rx="12" fill="#141B24" stroke="#22C9A0" stroke-width="1.5"/>
+<text x="300" y="297" font-size="13" font-weight="700" text-anchor="middle" fill="#F4F3EF">AgentHarbor vault</text>
+<text x="300" y="314" font-size="11" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#8B95A3">AES-256-GCM</text>
+<g><animateMotion dur="5.5s" repeatCount="indefinite" keyPoints="0;0;0.5;0.5;1;1" keyTimes="0;0.12;0.38;0.5;0.76;1" calcMode="linear" path="M134 276 C 134 300, 180 300, 236 300 L 364 300 C 420 300, 466 300, 466 276"/>
+    <g><animate attributeName="opacity" dur="5.5s" repeatCount="indefinite" keyTimes="0;0.1;0.78;0.84;1" values="0;1;1;0;0"/><rect x="-38" y="-14" width="76" height="28" rx="14" fill="#22C9A0"/><text x="0" y="5" font-size="12.5" font-weight="700" text-anchor="middle" fill="#0B0F14">cookies</text></g></g>
+<g><rect x="36" y="352" width="378" height="32" rx="16" fill="#141B24" stroke="#263040"/><circle cx="52" cy="368" r="4" fill="#22C9A0"/><text x="64" y="373" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#F4F3EF">session_save_state · 2 cookies, encrypted</text></g>
+<g><rect x="36" y="394" width="404" height="32" rx="16" fill="#141B24" stroke="#263040"/><circle cx="52" cy="410" r="4" fill="#22C9A0"/><text x="64" y="415" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#F4F3EF">session_start · restoreState: true · 0 fills</text></g>
+<text x="36" y="456" font-size="12" fill="#8B95A3">Values from the 2026-10-27 run log (docs/demo/README.md).</text>
+</svg>

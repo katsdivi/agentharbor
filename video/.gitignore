@@ -1,0 +1,6 @@
+node_modules/
+out/
+# Redacted footage masters and stills are generated privately (see README.md); never commit footage here.
+public/footage/
+# ElevenLabs download bundle; its contents are extracted into public/audio/
+/audio/

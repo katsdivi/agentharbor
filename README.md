@@ -1,72 +1,204 @@
-# AgentHarbor
+<!-- AgentHarbor README. Animated art lives in assets/readme/ (hand-written SVG, regenerate with `node assets/readme/generate.mjs`). -->
 
-AgentHarbor is a Claude Code plugin and local MCP server (package `remote-browser-accounts`) for web tasks that need a real browser and a real account. Claude gets browser sessions in a remote Apify container or a local worker, encrypted website accounts that only one job can lease at a time, verification email through MailSlurp inboxes bound to their site, saved logins it can restore later, and a metadata-cleaning step for files before a portal upload. Each run reports what happened, where the requests came from and what is still uncertain. **Who it's for:** engineers testing signup, login and upload flows on sites they are **authorised** to test. Passwords never pass through chat, an account never runs in two sessions at once, and the plugin never switches route on its own.
+<div align="center">
 
-> Research prototype, version 0.1.0. Only the scope listed under [Evidence](#evidence) was run against live sites.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/hero-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="assets/readme/hero-light.svg" />
+  <img alt="AgentHarbor: give agents a place to work. Browser sessions, accounts and saved logins as MCP tools for Claude Code." src="assets/readme/hero-light.svg" width="100%" />
+</picture>
 
----
+<br/>
 
-## Demo
+**AgentHarbor gives Claude a real browser, website accounts it can keep, and logins that survive a restart.** It is a Claude Code plugin that runs as a local MCP server. Passwords never pass through chat, an account never runs in two sessions at once, and every run reports where it ran and what is still uncertain.
 
-A genuine recording of one run on the public practice site automationexercise.com, made on 2026-10-27. **Claude (Claude Code) drove it through AgentHarbor's MCP tools**, and nobody typed or clicked in the browser. It covers signup, logout and re-login, saving the session, closing worker 1, restoring the session in a fresh worker 2 without entering credentials, deleting the account on the site, and confirming the deletion.
+<br/>
 
-- ▶️ **[Presentation cut, 63 s](docs/demo/agentharbor-demo-presentation.mp4):** captions; one span slowed 4×, two cuts and one held frame, each labeled on screen
-- 🎞️ **[Full chronological recording, 71 s](docs/demo/agentharbor-demo-full-chronological.mp4):** both workers in real time, unedited except for redactions
-- 📝 **[Run log, recording method and privacy notes](docs/demo/README.md)**
+[![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-D97757?style=flat-square&logo=anthropic&logoColor=white&labelColor=1E1E1E)](#quick-start)
+[![MCP](https://img.shields.io/badge/MCP-48_tools-22C9A0?style=flat-square&labelColor=1E1E1E)](#features)
+[![Status](https://img.shields.io/badge/status-research_prototype_v0.1.0-8B95A3?style=flat-square&labelColor=1E1E1E)](#operator-guide)
+[![License: MIT](https://img.shields.io/badge/license-MIT-F4F3EF?style=flat-square&labelColor=1E1E1E)](LICENSE)
 
-The video was captured by Playwright's `recordVideo` inside the plugin's own `local`-mode workers (`RBA_LOCAL_RECORD_VIDEO_DIR`). The disposable inbox address is covered by solid boxes. The site masks password inputs itself.
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white&labelColor=1E1E1E)](#architecture)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A522.13-5FA04E?style=flat-square&logo=nodedotjs&logoColor=white&labelColor=1E1E1E)](#quick-start)
+[![Playwright](https://img.shields.io/badge/Playwright-Chromium-2EAD33?style=flat-square&logo=playwright&logoColor=white&labelColor=1E1E1E)](#architecture)
+[![Apify](https://img.shields.io/badge/Apify-remote_workers-97D700?style=flat-square&labelColor=1E1E1E)](#operator-guide)
+[![MailSlurp](https://img.shields.io/badge/MailSlurp-real_inboxes-4F7BF7?style=flat-square&labelColor=1E1E1E)](#features)
+[![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-4FD8E8?style=flat-square&logo=sqlite&logoColor=white&labelColor=1E1E1E)](#architecture)
+[![Tests](https://img.shields.io/badge/tests-435_passing-22C9A0?style=flat-square&logo=vitest&logoColor=white&labelColor=1E1E1E)](#operator-guide)
 
-<p align="center"><img src="docs/demo/restored-session.png" width="720" alt="Worker 2, restored from saved cookies with zero credential fills: the site shows 'Logged in as Alex Demo'"><br><sub>Worker 2, a fresh process restored from saved cookies with zero credential fills (taken with <code>browser_screenshot</code>).</sub></p>
+<br/>
 
----
+[Watch](#watch-it-work) &nbsp;·&nbsp; [How it works](#how-it-works) &nbsp;·&nbsp; [Features](#features) &nbsp;·&nbsp; [Evidence](#evidence) &nbsp;·&nbsp; [Architecture](#architecture) &nbsp;·&nbsp; [Quick start](#quick-start) &nbsp;·&nbsp; [Operator guide](#operator-guide)
 
-## Contents
+</div>
 
-[Capabilities](#verified-capabilities) · [Architecture](#architecture) · [Install](#prerequisites-and-installation) · [Claude Code setup](#claude-code--mcp-setup) · [Configuration](#configuration) · [Quickstart](#quickstart) · [Modes](#execution-modes) · [Allowlists](#exact-origin-allowlists) · [Evidence](#evidence) · [Tests](#tests) · [Limitations](#known-limitations) · [Troubleshooting](#troubleshooting) · [Status](#project-status-and-roadmap) · [License](#license)
+<br/>
 
----
+<img src="assets/readme/divider.svg" alt="" width="100%" />
 
-## Verified capabilities
+## Watch it work
 
-"Live" means it ran against real Apify/MailSlurp services (see [docs/LIVE-RESULTS.md](docs/LIVE-RESULTS.md) and [the 2026-10-27 evidence](docs/evidence/signup-compat-2026-10-27/README.md)). "Owned fixture" means it ran live, but only against our own test site (`fixture-actor/`). "Fixture tests" means automated tests against fakes and local fixtures only.
+<div align="center">
 
-| Capability | Tools | How it is verified |
-|---|---|---|
-| Browser sessions (navigate, inspect, click, fill, select, screenshot, extract, bounded crawl) | `session_*`, `browser_*`, `scrape_extract`, `crawl_start` | **Live** on public practice sites, in `remote_direct`, `remote_proxy` (datacenter, residential) and `local` |
-| Accounts and credentials: AES-256-GCM encrypted, exclusive leases, bound to one execution mode | `account_*` | **Live** signup, login, re-login and restore on 3 public practice sites (see [Evidence](#evidence) for the qualifications) |
-| Email via MailSlurp: inbox creation and deletion, real message reception, verification-link parsing | `email_*` | **Live** |
-| Website-generated verification email followed end to end | `account_register` with `verification` | **Owned fixture only.** No third-party site that sends verification email has been tested |
-| Email modes `kept` / `disposable` (site-bound, extend, reopen, retire) | `email_inbox_*` | Fixture tests only |
-| Session save and restore (cookies and localStorage, encrypted) | `session_save_state`, `session_start {accountId}` | **Live**: a fresh worker restored the login with zero fills on all 3 practice sites |
-| File metadata removal (JPEG, PNG, WebP, PDF, MP3, FLAC, WAV, M4A, MP4/MOV) | `file_*`, `media_*` | Fixture tests per format; **live** end to end for one synthetic JPEG |
-| Portal upload with destination hash check | `portal_upload`, `browser_upload` | **Owned fixture** (portal echoed the sanitized file's size and SHA-256); one public practice upload confirmed by file name only |
-| Saved read operations (off by default) | `operation_*` | Live on one practice search page; see [docs/OPERATIONS.md](docs/OPERATIONS.md) |
+<a href="docs/demo/agentharbor-product-film.mp4"><img src="docs/demo/agentharbor-product-film-poster.png" alt="AgentHarbor product film: click to play (56 s, MP4)" width="100%" /></a>
 
-The server exposes 48 tools (`src/mcp/tools/`). In Claude Code they appear as `mcp__plugin_remote-browser-accounts_remote-browser__<tool>`.
+<sub><b><a href="docs/demo/agentharbor-product-film.mp4">▶ Product film, 56 s, sound on</a></b> &nbsp;·&nbsp; <a href="docs/demo/agentharbor-demo-full-chronological.mp4">Full chronological recording, 71 s</a> &nbsp;·&nbsp; <a href="docs/demo/agentharbor-demo-presentation.mp4">Captioned cut, 63 s</a> &nbsp;·&nbsp; <a href="docs/demo/README.md">Run log and methodology</a></sub>
 
-### What the plugin does vs. what Claude does
+</div>
+
+One real run on the public practice site automationexercise.com (2026-10-27, `local` mode). **Claude drove it through AgentHarbor's MCP tools** and nobody typed in the browser. It covers signup, logout and re-login, saving the session, closing worker 1, restoring the session in a new worker 2, deleting the account on the site, and confirming the deletion. The film is an edited cut with an AI-generated voice-over and music: its speed changes, held frames and illustrative graphics are labeled and [documented](docs/demo/README.md#product-film). The chronological recording is unedited apart from redactions.
+
+<img src="assets/readme/divider.svg" alt="" width="100%" />
+
+## The problem
+
+> **Agent:** I need to log in to finish this.<br/>
+> **You:** don't paste the password into chat.<br/>
+> **Agent:** and tomorrow I'll have to log in all over again.
+
+Agents that work on the web need three things a chat window can't give them: a browser, an account, and a login that outlives the session. AgentHarbor provides all three as MCP tools, with the credentials kept out of the conversation.
+
+<table>
+<tr>
+<td width="50%" valign="middle">
+
+### A new browser. The session continues.
+
+When a session ends, `session_save_state` encrypts its cookies and localStorage into the account (AES-256-GCM). Later, `session_start {accountId}` launches a **new worker process** with those cookies, and the site already shows you as logged in. No credentials are entered again.
+
+In the recorded run, worker 1 saved 2 cookies and closed without logging out. Worker 2 opened the site as "Logged in as Alex Demo" with **zero credential fills**.
+
+When a password is needed, `browser_fill` types it from a stored **secret reference**. Neither Claude nor the transcript ever sees the value.
+
+</td>
+<td width="50%" valign="middle" align="center">
+
+<img src="assets/readme/restore-card.svg" alt="Session restore, illustrated: worker 1 saves 2 cookies into the encrypted vault and closes; a new worker 2 starts with them and is logged in as Alex Demo with zero credential fills." width="100%" />
+
+</td>
+</tr>
+</table>
+
+<div align="center">
+<img src="assets/readme/restore-demo.gif" alt="Clip from the AgentHarbor product film: worker 2, a new process, shows 'Logged in as Alex Demo' and a RESTORED label" width="560" />
+<br/>
+<sub>From the product film: worker 2's real footage, restored without re-entering credentials. The card above is an illustration.</sub>
+</div>
+
+<img src="assets/readme/divider.svg" alt="" width="100%" />
+
+## How it works
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/how-it-works-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="assets/readme/how-it-works-light.svg" />
+  <img alt="How it works: 1 sign up with account_register, 2 log in with stored credentials, 3 save the session, 4 restore it in a new worker process, 5 clean up the account and inbox." src="assets/readme/how-it-works-light.svg" width="100%" />
+</picture>
+
+1. **Sign up.** `account_register` fills the public signup form of an **authorised** target with a synthetic identity and a generated password. It submits exactly once and follows a verification email through a real MailSlurp inbox when the site sends one.
+2. **Log in.** `browser_fill {secret: "account_email" | "account_password"}` types the stored credentials. The values never come back to Claude.
+3. **Save state.** `session_save_state` encrypts the session's cookies and localStorage into the account.
+4. **Restore.** `session_start {accountId}` starts a fresh worker with that state, with the account's lease held and its execution mode enforced.
+5. **Clean up.** Delete the account on the site, then `account_delete {deleteInbox: true}` removes the local record and the inbox.
+
+<img src="assets/readme/divider.svg" alt="" width="100%" />
+
+## Features
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+#### 🧭 Browser sessions
+- `session_start` in one of three [execution modes](#operator-guide): `local`, `remote_direct`, `remote_proxy`. A session never falls back to another mode.
+- `browser_navigate`, `browser_inspect`, `browser_click`, `browser_fill`, `browser_select`, `browser_screenshot`, `scrape_extract`, bounded `crawl_start`.
+- Page text comes back marked **untrusted**, so instructions on a page are not obeyed.
+- <sub>**Live** on public practice sites in all three modes.</sub>
+
+#### 🔐 Accounts and credentials
+- AES-256-GCM vault for passwords and browser state. **Secret references** only: passwords are never returned.
+- Exclusive **leases**: one job per account at a time.
+- Each account is bound to the execution mode (and proxy) it was created in.
+- <sub>**Live** signup, login, re-login and restore on 3 practice sites ([qualifications](#evidence)).</sub>
+
+#### ✉️ Email
+- Real MailSlurp inboxes, `kept` or `disposable`, bound to the site they serve.
+- Verification links and codes are followed remotely by the signup job.
+- <sub>Inboxes: **live**. Site-sent verification email: **owned fixture only**.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+#### ♻️ Persistent state
+- `session_save_state` and restore in a new worker, with zero credential fills.
+- `account_delete` removes only the local record (and the inbox); the result says so (`websiteAccount: "not_deleted"`).
+- <sub>**Live**: restore with zero fills on all 3 practice sites.</sub>
+
+#### 🧹 Files and uploads
+- Removes metadata from JPEG, PNG, WebP, PDF, MP3, FLAC, WAV, M4A and MP4/MOV into a new artifact, verified afterwards.
+- `portal_upload` checks the destination's file hash.
+- <sub>Fixture tests per format; **live** for one synthetic JPEG; upload on the **owned fixture**.</sub>
+
+#### 🛡️ Guardrails (enforced in code)
+- Exact-origin allowlists for navigation, subresources and signup targets, including on redirects.
+- Private, loopback and metadata addresses blocked unless explicitly allowed.
+- Signup is a state machine: it never resubmits after a possible submission.
+- It **stops** on HTTP 403/429 or human verification and never tries to bypass a CAPTCHA.
+
+</td>
+</tr>
+</table>
+
+<details>
+<summary><b>What the plugin enforces vs. what Claude decides</b></summary>
+
+<br/>
 
 | The plugin enforces (in code) | Claude (the "operator agent") decides |
 |---|---|
 | Exact-origin allowlists for navigation, subresources and signup targets | Which pages to open and which selectors to use |
-| Encrypted storage, secret references (passwords are never returned), one lease per account | Form field mapping, `successText` and `rejectionTexts` |
-| Signup job state machine: submits once and never resubmits after a possible submission | Usernames (filled as plain values; see limitations) |
+| Encrypted storage, secret references (passwords never returned), one lease per account | Form field mapping, `successText` and `rejectionTexts` |
+| Signup job state machine: submits once, never resubmits after a possible submission | Usernames (filled as plain values; see limitations) |
 | Block detection: stops on HTTP 403/429 or a visible human-verification challenge | Whether to report, retry or lift a quarantine, always with the **user's** approval |
 | No fallback between execution modes, proxies or accounts | Which execution mode to request |
 
-In the 2026-10-27 runs, Claude's own choices shaped the results. Its rejection word `Invalid` caused the ExpandTesting false failure.
+In the 2026-10-27 runs, Claude's own choices shaped the results: its rejection word `Invalid` caused the ExpandTesting false failure. The server exposes 48 tools (`src/mcp/tools/`); in Claude Code they appear as `mcp__plugin_remote-browser-accounts_remote-browser__<tool>`.
 
----
+</details>
+
+<img src="assets/readme/divider.svg" alt="" width="100%" />
+
+## Evidence
+
+Live runs of build `0.1.0+7b11081` on 2026-10-27 ([summary](docs/evidence/signup-compat-2026-10-27/README.md), [raw log](docs/evidence/signup-compat-2026-10-27/evidence-log.md)), plus the controlled fixture from [docs/LIVE-RESULTS.md](docs/LIVE-RESULTS.md). These are practice sites and our own fixture; **they say nothing about other sites.**
+
+| Run | Signup | Email verification | Login | Restore, 0 fills | Deleted on site | Local cleanup | Intervention |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| AutomationExercise | ✅ | not sent | ✅ | ✅ | ✅ | ✅ | **none** |
+| ↳ recorded demo, `local` ([log](docs/demo/README.md)) | ✅ | not sent | ✅ | ✅ | ✅ | ✅ | **none** during the run |
+| ExpandTesting | ✅¹ | not sent | ✅ | ✅ | ❌² | ✅ | operator lifted a quarantine |
+| ParaBank | ❌→✅³ | not sent | ✅ | ✅ | ❌² | ✅ | user-approved resubmit via residential proxy |
+| Owned fixture | ✅ | ✅ | — | ✅ | n/a | ✅ | none recorded |
+
+<sub>¹ The signup succeeded, but the plugin reported a false rejection. ² The site has no delete option. ³ The first attempt got HTTP 403 / human verification; the second passed through a different route. "Deleted on site" was confirmed by a refused login afterwards.</sub>
+
+- **No manual browser input** in any run. **No human or operator intervention** only on AutomationExercise.
+- **No CAPTCHA or challenge was solved.** ParaBank's second attempt used a different route, chosen by the user, that the site did not challenge.
+- **Local cleanup is not external cleanup.** Test accounts `rbaexp1cd1b9` (ExpandTesting) and `rbapb9d9db2` (ParaBank) remain; the status of `rbapbc863a1` (ParaBank, the 403 attempt) is unknown.
+- Website-generated verification email has been proven **only against our own fixture**.
+
+<img src="assets/readme/divider.svg" alt="" width="100%" />
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  CC["Claude Code"] -- "MCP over stdio" --> MCP["MCP server<br/>src/mcp (scripts/start-mcp.mjs)"]
+  CC["Claude Code"] -- "MCP over stdio" --> MCP["MCP server<br/>src/mcp"]
   MCP --> CORE["core<br/>SQLite registry (node:sqlite)<br/>AES-256-GCM vault · leases · jobs · budget"]
   CORE -- "HTTPS" --> MS["MailSlurp API"]
-  CORE --> AP["ApifyProvider<br/>src/providers/apify.ts"]
-  CORE --> LP["LocalProvider<br/>src/providers/local.ts"]
+  CORE --> AP["ApifyProvider"]
+  CORE --> LP["LocalProvider"]
   AP -- "HTTPS + per-session bearer" --> RW["Apify Actor run<br/>actor/ worker"]
   LP -- "127.0.0.1 + bearer" --> LW["local child process<br/>actor/dist/main.js"]
   RW --> PW["Playwright Chromium<br/>→ in-worker policy proxy"]
@@ -75,107 +207,68 @@ flowchart LR
   DASH["dashboard<br/>127.0.0.1 only"] --> CORE
 ```
 
-- **One Apify Actor run is one browser session.** The local and remote workers run the same `actor/` code, so they share the same network policy.
-- **Every browser request goes through a policy proxy inside the worker.** It checks allowlists and blocks private addresses before any connection is opened, including on redirect hops (`actor/src/policyproxy.ts`, `actor/src/netpolicy.ts`).
-- **MailSlurp is called from the MCP server, never from the worker.** In remote modes, target-site traffic stays in the container.
-- The dashboard (`npm run dashboard -- --open`) is where you type passwords for existing accounts, so they never go through chat. It also shows jobs, accounts, results and usage.
+| Path | What lives there |
+|---|---|
+| `src/mcp` | MCP server and the 48 tool definitions |
+| `src/core` | Config, registry, vault, leases, sessions, jobs, budget |
+| `src/providers` | `ApifyProvider` (remote) and `LocalProvider` (child process on this computer) |
+| `actor/` | The worker: Playwright Chromium behind an in-worker policy proxy, the same code locally and on Apify |
+| `src/dashboard` | Local dashboard (127.0.0.1): enter existing passwords outside chat, and see jobs and usage |
+| `video/` | Remotion source of the product film ([render instructions](video/README.md)) |
 
-Mode and route rules: [docs/MODES.md](docs/MODES.md). Design details (leases, command deadlines, readiness, block detection, cost accounting): [docs/REFERENCE.md](docs/REFERENCE.md). Review findings: [docs/REVIEW.md](docs/REVIEW.md).
+One Apify Actor run is one browser session. MailSlurp is called from the MCP server, never from the worker. Every browser request passes the policy proxy before a connection opens. Design details: [docs/REFERENCE.md](docs/REFERENCE.md) · modes: [docs/MODES.md](docs/MODES.md) · review: [docs/REVIEW.md](docs/REVIEW.md).
 
----
+<img src="assets/readme/divider.svg" alt="" width="100%" />
 
-## Prerequisites and installation
+## Quick start
 
-**You need:**
-- Node.js ≥ 22.13 (it uses the built-in `node:sqlite`), npm ≥ 10, git
-- Claude Code with plugin support (tested with 2.1.296)
-- Your own Apify and MailSlurp accounts. No credentials ship with the plugin.
-- Optional: ffmpeg/ffprobe and Poppler for the file tools, and Playwright Chromium for `local` mode
+You need Node ≥ 22.13, npm ≥ 10, Claude Code with plugin support, and your own Apify and MailSlurp accounts (no credentials ship with the plugin). Only macOS arm64 has been tested ([platforms](docs/PLATFORMS.md)).
 
-Only macOS arm64 has been tested. See [docs/PLATFORMS.md](docs/PLATFORMS.md).
-
-```bash
-npm run setup          # npm ci (root + actor/), build, then init-env
-#   or step by step:
-npm ci && npm --prefix actor ci
-npm run build          # server -> dist/, worker -> actor/dist/
-npm run doctor         # runtime, build, local mode, config names, data dir, file tools
-npm run init-env       # creates .env (mode 600) with generated RBA_ENCRYPTION_KEY / RBA_DASHBOARD_TOKEN; never overwrites
-npm run check-config   # lists missing variable NAMES per capability
-npm run deploy-actor   # deploys the private worker Actor; prints APIFY_ACTOR_ID=<you>~remote-browser-worker
-(cd actor && npx playwright install chromium)   # only for mode local and the worker tests
+```sh
+npm run setup          # npm ci (root + actor/), build, then init-env (writes .env, mode 600, generated keys)
+npm run check-config   # names of missing variables per capability (never values)
+npm run deploy-actor   # deploys your private worker Actor; prints APIFY_ACTOR_ID
+claude plugin marketplace add "$(pwd)" && claude plugin install remote-browser-accounts@remote-browser-accounts-local
 ```
 
-Optional live checks (they use Apify credit):
+Then ask Claude: *"Start a remote browser session, open https://automationexercise.com/products, extract each product's name and price, then close the session."* The [pipeline skill](skills/pipeline/SKILL.md) (`/remote-browser-accounts:pipeline <task>`) handles the full flow.
 
-```bash
-npm run live-check -- --browser            # one short direct session
-npm run live-check -- --proxy=residential  # verifies a proxied route (billed per GB)
-npm run live-check -- --email              # creates and deletes one MailSlurp inbox
-```
+> [!WARNING]
+> **Install it as a plugin, and don't load the repo's `.mcp.json` as a project server.** The file uses `${CLAUDE_PLUGIN_ROOT}`, which is set only for plugins. When Claude Code is opened inside this folder, it also loads `.mcp.json` as a project server named `remote-browser`, which fails with `CONNECTION_CLOSED`. Keep `plugin:remote-browser-accounts:remote-browser`, and add `"disabledMcpjsonServers": ["remote-browser"]` to `.claude/settings.local.json`. Don't set `enabledMcpjsonServers: ["remote-browser"]` or `enableAllProjectMcpServers: true`.
 
-Install paths, where the `.env` and data live, upgrades, backups and removal: **[docs/INSTALL.md](docs/INSTALL.md)**.
+`.env` values are yours to fill in; never paste them into chat. Install paths, data location, upgrades and backups: **[docs/INSTALL.md](docs/INSTALL.md)**.
 
----
+<img src="assets/readme/divider.svg" alt="" width="100%" />
 
-## Claude Code / MCP setup
+## Operator guide
 
-The repo's `.mcp.json` starts the server with `${CLAUDE_PLUGIN_ROOT}/scripts/start-mcp.mjs`. That variable is only set when Claude Code loads the folder **as a plugin**, so install it as one:
+Every section below is the full reference. Click to expand.
 
-```bash
-claude plugin validate .
-claude plugin marketplace add "$(pwd)"
-claude plugin install remote-browser-accounts@remote-browser-accounts-local
-# or, for one session only: claude --plugin-dir "$(pwd)"
-```
+<details>
+<summary><b>Configuration</b></summary>
 
-The working server is the plugin-namespaced one, `plugin:remote-browser-accounts:remote-browser`. Claude Code doesn't build in-place plugins, so after each update run `npm ci && npm --prefix actor ci && npm run build`, then `/reload-plugins`.
+<br/>
 
-**When you open Claude Code inside this repo folder,** it also reads `.mcp.json` as a *project* server named `remote-browser`. `CLAUDE_PLUGIN_ROOT` is unset there, so that copy fails with `CONNECTION_CLOSED` ([observed in the evidence log](docs/evidence/signup-compat-2026-10-27/evidence-log.md)). Disable the project copy in `.claude/settings.local.json`:
-
-```json
-{
-  "disabledMcpjsonServers": ["remote-browser"]
-}
-```
-
-Don't add `remote-browser` to `enabledMcpjsonServers`, and don't set `enableAllProjectMcpServers: true` for this repo. Either one brings back the broken duplicate.
-
-To show the new name in the UI, you can set `RBA_DISPLAY_NAME=AgentHarbor` in `.env`. It changes the MCP server title and the dashboard label, never the plugin id or the tool names.
-
----
-
-## Configuration
-
-`.env` lookup order (first found wins; `src/core/config.ts`):
-1. `RBA_ENV_FILE`
-2. `$CLAUDE_PLUGIN_DATA/.env`
-3. the user config folder: `$RBA_CONFIG_HOME`, else `$XDG_CONFIG_HOME/remote-browser-accounts`, else `~/.config/remote-browser-accounts/.env` (recommended)
-4. `$CLAUDE_PLUGIN_ROOT/.env`
-5. the checkout's `.env`
-
-The data folder always sits next to the `.env` it belongs to. **Back them up together:** the key in `.env` is the only way to decrypt stored accounts. Keep the `.env` and the data out of the plugin folder, because Claude Code copies that folder into its plugin cache ([why](docs/INSTALL.md#where-configuration-and-data-live)). Fill in values yourself, and never paste them into chat.
+`.env` lookup order (first found wins): `RBA_ENV_FILE` → `$CLAUDE_PLUGIN_DATA/.env` → the user config folder (`$RBA_CONFIG_HOME`, else `$XDG_CONFIG_HOME/remote-browser-accounts`, else `~/.config/remote-browser-accounts/.env`, recommended) → `$CLAUDE_PLUGIN_ROOT/.env` → the checkout's `.env`. The data folder sits next to its `.env`. **Back them up together:** the key in `.env` is the only way to decrypt stored accounts.
 
 | Variable | Required? | Purpose |
 |---|---|---|
-| `APIFY_TOKEN` | Remote modes | Your Apify API token |
-| `APIFY_ACTOR_ID` | Remote modes | Printed by `npm run deploy-actor` |
-| `MAILSLURP_API_KEY` | Email and `account_register` | Your MailSlurp API key |
-| `RBA_ENCRYPTION_KEY` | Yes (generated by `init-env`) | Vault key for credentials and browser state |
-| `RBA_DASHBOARD_TOKEN` | Dashboard (generated by `init-env`) | Dashboard sign-in |
-| `RBA_AUTHORIZED_TARGETS` | Signup and account use | Signup/account target origins, see [Allowlists](#exact-origin-allowlists) |
+| `APIFY_TOKEN`, `APIFY_ACTOR_ID` | Remote modes | Your Apify token; the Actor id printed by `npm run deploy-actor` |
+| `MAILSLURP_API_KEY` | Email and `account_register` | Your MailSlurp key |
+| `RBA_ENCRYPTION_KEY` | Yes (generated) | Vault key for credentials and browser state |
+| `RBA_DASHBOARD_TOKEN` | Dashboard (generated) | Dashboard sign-in |
+| `RBA_AUTHORIZED_TARGETS` | Signup and accounts | Signup/account target origins, see allowlists |
 | `RBA_ALLOWED_ORIGINS` | Browsing without an account | Navigation allowlist; empty means no navigation |
-| `RBA_SUBRESOURCE_ORIGINS` | Optional | Extra origins pages may load resources from |
-| `RBA_ALLOW_PRIVATE_HOSTS` | Optional (leave empty) | Explicitly authorised private test hosts |
-| `RBA_DEFAULT_EXECUTION_MODE` / `RBA_DEFAULT_PROXY_MODE` / `RBA_PROXY_COUNTRY` | Optional | Default route |
-| `RBA_MONTHLY_BUDGET_USD`, `RBA_MAX_*`, `RBA_*_TIMEOUT_SECS`, … | Optional | Budget and limits (conservative defaults) |
+| `RBA_SUBRESOURCE_ORIGINS`, `RBA_ALLOW_PRIVATE_HOSTS` | Optional | Extra resource origins; explicitly authorised private test hosts |
+| `RBA_DEFAULT_EXECUTION_MODE`, `RBA_DEFAULT_PROXY_MODE`, `RBA_PROXY_COUNTRY` | Optional | Default route |
+| `RBA_MONTHLY_BUDGET_USD`, `RBA_MAX_*`, `RBA_*_TIMEOUT_SECS` | Optional | Budget and limits (conservative defaults) |
 | `RBA_INBOX_EXPIRES_HOURS`, `RBA_MAILSLURP_*` | Optional | Inbox lifetime and monthly caps |
-| `RBA_IMPORT_ROOTS`, `RBA_UPLOAD_ROOTS`, `RBA_MAX_IMPORT_MB`, … | Optional | Which local files the plugin may read |
-| `RBA_OPERATIONS_ENABLED` | Optional (off) | Saved read operations |
-| `RBA_DISPLAY_NAME` | Optional | UI label only |
+| `RBA_IMPORT_ROOTS`, `RBA_UPLOAD_ROOTS`, `RBA_MAX_IMPORT_MB` | Optional | Which local files the plugin may read |
+| `RBA_OPERATIONS_ENABLED` | Optional (off) | Saved read operations ([docs](docs/OPERATIONS.md)) |
 | `RBA_LOCAL_RECORD_VIDEO_DIR` | Optional (off) | Record `local`-mode worker pages as `.webm` (demos) |
+| `RBA_DISPLAY_NAME` | Optional | UI label only, e.g. `AgentHarbor` |
 
-Every variable with its default is in [.env.example](.env.example). Example placeholders:
+Every variable with its default is in [.env.example](.env.example).
 
 ```bash
 APIFY_TOKEN=REPLACE_ME
@@ -185,20 +278,21 @@ RBA_AUTHORIZED_TARGETS=https://app.example.com|https://auth.example.com
 RBA_ALLOWED_ORIGINS=https://app.example.com
 ```
 
----
+</details>
 
-## Quickstart
+<details>
+<summary><b>Tool calls, step by step</b></summary>
 
-The easiest entry point is `/remote-browser-accounts:pipeline <your web task>` ([skill](skills/pipeline/SKILL.md)). The tool calls below are what Claude makes for you. The argument names come from `src/mcp/tools/`.
+<br/>
 
 ```text
 config_check {}                                   # missing variable NAMES, build identity, signup targets
 
-# 1. Inspect the signup page (needs the origin in RBA_ALLOWED_ORIGINS)
-session_start   { mode: "remote_direct" }
-browser_navigate{ sessionId, url: "https://app.example.com/signup" }
-browser_inspect { sessionId }                      # element refs + visible text (marked untrusted)
-session_close   { sessionId }
+# 1. Inspect the signup page (origin must be in RBA_ALLOWED_ORIGINS)
+session_start    { mode: "remote_direct" }
+browser_navigate { sessionId, url: "https://app.example.com/signup" }
+browser_inspect  { sessionId }                     # element refs + visible text (marked untrusted)
+session_close    { sessionId }
 
 # 2. Register one synthetic test account (origin must be in RBA_AUTHORIZED_TARGETS)
 account_register {
@@ -214,14 +308,14 @@ account_register {
   idempotencyKey: "signup-app-example-001", waitSecs: 100 }
 job_status { jobId, waitSecs: 100 }                # until terminal
 
-# 3. Log in with the stored credentials, then save the browser state
-session_start    { accountId }
-browser_navigate { sessionId, url: "https://app.example.com/login" }
-browser_fill     { sessionId, selector: "#email",    secret: "account_email" }
-browser_fill     { sessionId, selector: "#password", secret: "account_password" }
-browser_click    { sessionId, selector: "button[type=submit]", waitForNavigation: true }
+# 3. Log in with stored credentials, then save the browser state
+session_start      { accountId }
+browser_navigate   { sessionId, url: "https://app.example.com/login" }
+browser_fill       { sessionId, selector: "#email",    secret: "account_email" }
+browser_fill       { sessionId, selector: "#password", secret: "account_password" }
+browser_click      { sessionId, selector: "button[type=submit]", waitForNavigation: true }
 session_save_state { sessionId }
-session_close    { sessionId }
+session_close      { sessionId }
 
 # 4. Restore later without logging in: the response shows restoredBrowserState: true
 session_start { accountId }
@@ -230,72 +324,57 @@ session_start { accountId }
 account_delete { accountId, confirmAccountId: accountId, deleteInbox: true }
 ```
 
-There are two kinds of secret reference. `account_register` fields take `{secret: "email" | "password" | "display_name"}`. `browser_fill` takes `secret: "account_password" | "account_email" | "verification_code"`. Job states (`completed`, `completed_unconfirmed`, `outcome_unknown`, `blocked`, …) are described in the `job_status` tool description. File cleaning and upload: [docs/FILES.md](docs/FILES.md).
+`account_register` fields take `{secret: "email" | "password" | "display_name"}`; `browser_fill` takes `secret: "account_password" | "account_email" | "verification_code"`. Job states (`completed`, `completed_unconfirmed`, `outcome_unknown`, `blocked`, …) are described in `job_status`. Files and uploads: [docs/FILES.md](docs/FILES.md).
 
----
+</details>
 
-## Execution modes
+<details>
+<summary><b>Execution modes</b></summary>
 
-Each session runs in exactly one mode, chosen at `session_start` (or set by the account). Details: [docs/MODES.md](docs/MODES.md).
+<br/>
 
 | Mode | Browser runs in | Requests come from | Route check |
 |---|---|---|---|
-| `remote_direct` (default) | Apify Actor run | Apify worker IP | None (the IP is reported for information) |
-| `remote_proxy` | Apify Actor run | Apify `datacenter` or `residential` proxy, optional country | Required: the session is refused unless the egress IP differs from the worker's direct IP |
-| `local` | A child process on this computer, with a fresh temporary profile | This computer's network | None |
+| `remote_direct` (default) | Apify Actor run | Apify worker IP | None (IP reported for information) |
+| `remote_proxy` | Apify Actor run | Apify `datacenter` or `residential` proxy, optional country | Required: refused unless the egress IP differs from the worker's direct IP |
+| `local` | Child process on this computer, fresh temporary profile | This computer's network | None |
 
 **Guaranteed:**
-- No fallback between modes, proxies or accounts. A mode that can't be honoured is refused.
-- An account stays bound to the mode (and proxy kind/country) it was created in.
-- `local` never touches your personal browser profile or cookies.
+- No fallback between modes, proxies or accounts.
+- An account stays bound to its mode (and proxy kind and country).
+- `local` never touches your personal browser profile.
 
 **Not guaranteed:**
-- **No mode is anonymous.** "Verified" in `remote_proxy` means only that the IPs differed at session start. It is not a leak test, and it proves neither a location nor a stable IP.
+- **No mode is anonymous or undetectable.** "Verified" in `remote_proxy` means only that the IPs differed at session start.
 - In proxy modes, DNS lookups for the policy check still leave from the container's resolver.
-- The plugin doesn't control how a site links accounts to IPs or devices.
 
----
+Details: [docs/MODES.md](docs/MODES.md).
 
-## Exact-origin allowlists
+</details>
 
-Use these only for sites you are authorised to test. All entries are exact origins: scheme and port must match, and a bare hostname becomes `https://`.
+<details>
+<summary><b>Exact-origin allowlists and testing scope</b></summary>
+
+<br/>
+
+Use AgentHarbor only on sites you are **authorised** to test. Entries are exact origins (scheme and port must match).
 
 | Setting | Controls | Syntax |
 |---|---|---|
-| `RBA_AUTHORIZED_TARGETS` | Where accounts may be created or used (`account_register`, `account_add`, account sessions), and which origins verification links may open | `https://app.example.com\|https://auth.example.com,https://other.test`: a target plus optional `\|`-separated auth origins |
-| `RBA_ALLOWED_ORIGINS` | Main-frame navigation for sessions **without** an account | Comma-separated origins. Empty means no navigation; `*` only if set explicitly |
+| `RBA_AUTHORIZED_TARGETS` | Where accounts may be created or used, and which origins verification links may open | `https://app.example.com\|https://auth.example.com,https://other.test` |
+| `RBA_ALLOWED_ORIGINS` | Main-frame navigation for sessions **without** an account | Comma-separated; empty = none; `*` only explicitly |
 | `RBA_SUBRESOURCE_ORIGINS` | Extra origins for iframes, scripts, images, fetch/XHR, WebSockets, workers | Exact origins or `https://*.example.com` |
 
-An account session navigates only to its target and that target's auth origins. `RBA_ALLOWED_ORIGINS` doesn't apply to it. To find out which hosts a site needs, use `session_network_log`, and add only those.
+An account session navigates only to its target and that target's auth origins. To see which hosts a site needs, use `session_network_log`, and add only those.
 
----
+</details>
 
-## Evidence
+<details>
+<summary><b>Tests</b></summary>
 
-Live runs of build `0.1.0+7b11081` on 2026-10-27 ([summary](docs/evidence/signup-compat-2026-10-27/README.md), [raw log](docs/evidence/signup-compat-2026-10-27/evidence-log.md)), plus the controlled fixture rows from [docs/LIVE-RESULTS.md](docs/LIVE-RESULTS.md). These are practice sites and our own fixture. **They say nothing about other sites.**
+<br/>
 
-| Site | Signup | Email verification | Login (logout, re-login) | Restoration (zero fills) | Site-side deletion | Local cleanup | Interventions |
-|---|---|---|---|---|---|---|---|
-| automationexercise.com | Passed | Not sent by site (disposable inbox created) | Passed | Passed | **Yes**, via the site's "Delete Account"; a later login was refused | Done | **None** |
-| practice.expandtesting.com | Succeeded, but the **plugin reported a false rejection** and quarantined the account | Not requested by site (inbox created, unused) | Passed | Passed | **No**: the site has no delete option | Done | Operator agent lifted the quarantine |
-| parabank.parasoft.com | Attempt 1 **blocked** (HTTP 403, human verification). Attempt 2 passed | Not requested by site (inbox created, unused) | Passed (2nd account) | Passed (2nd account) | **No**: the site has no delete option | Done | User approved a resubmit through a **residential proxy** |
-| Owned fixture (`fixture-actor/`, 2026-10-10 and 2026-10-12) | Passed | **Passed**: the site sent the mail, the plugin followed the link, the page showed "Email verified: yes" | Not recorded live (restore only) | Passed | n/a (in-memory fixture; run aborted) | Done | None recorded |
-| automationexercise.com, **recorded demo** (`local` mode, build `0.1.0+7b11081.dirty`, [run log](docs/demo/README.md)) | Passed | Not sent by site (disposable inbox created) | Passed | Passed | **Yes**; a later login was refused | Done | **None** during the run |
-
-- **Only automationexercise.com completed the full lifecycle, site-side deletion included, with no intervention.**
-- **Website-generated verification email was proven only against our own fixture.**
-- **No manual browser input**: true for all three sites. Every page action went through the plugin's tools, and passwords were filled from stored references.
-- **No human or operator intervention**: true only for AutomationExercise. The allowlists for all three sites were configured before the runs. ExpandTesting and ParaBank were added after a first attempt that the plugin refused as not allowed.
-- **No CAPTCHA or challenge was solved.** ParaBank's second attempt went through a different route that the site didn't challenge. That route change was the user's decision, not the plugin's.
-- **Local cleanup is not external cleanup.** All local records and inboxes were deleted. On the sites, `rbaexp1cd1b9` (ExpandTesting) and `rbapb9d9db2` (ParaBank) remain, and the status of `rbapbc863a1` (ParaBank, the 403 attempt) is unknown.
-
-If a recorded run differs from these results, it is added as a new row, not as a replacement.
-
----
-
-## Tests
-
-```bash
+```sh
 npm test                 # build + all fixture tests (vitest)
 npm run test:unit        # fast unit tests
 npm run test:integration # build + integration tests
@@ -304,69 +383,76 @@ npm run typecheck        # server + worker
 npm run live-check -- --browser | --proxy=residential | --email   # live, uses Apify/MailSlurp credit
 ```
 
-Results for this revision: on 2026-10-27 (macOS arm64, Node 24) `npm run typecheck` passed, and after `npm run build` the full `vitest run` (what `npm test` runs) gave **35 files, 435 tests passed, 1 skipped**. `test:e2e` and `live-check` were **not** run in this session.
+On 2026-10-27 (macOS arm64, Node 24): `npm run typecheck` passed, and after `npm run build` the full `vitest run` gave **35 files, 435 tests passed, 1 skipped**. `test:e2e` and `live-check` were not run in that session. Fixture tests exercise the real code against fakes and local fixture sites. **They are engineering checks, not compatibility evidence.** Proof level per requirement: [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
-The fixture tests run the real provider, MailSlurp client and worker code against fake Apify and MailSlurp APIs and local fixture sites. **They are engineering checks, not compatibility evidence.** A passing suite doesn't show that any third-party site accepts these signups. Each requirement's proof level is in [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md), and the review findings are in [docs/REVIEW.md](docs/REVIEW.md).
+</details>
 
----
+<details>
+<summary><b>Known limitations</b></summary>
 
-## Known limitations
+<br/>
 
-- **CAPTCHAs and human verification:** the plugin doesn't solve or bypass CAPTCHAs, and it has no stealth or anti-detection features. On HTTP 403/429 or a visible challenge it stops. The job ends `blocked`, the account is marked `blocked` or quarantined, and nothing is retried with another account, IP or proxy.
-- **Every signup gets an inbox:** `account_register` creates a MailSlurp inbox even for sites that never ask for an email, and that counts against the MailSlurp quota.
-- **`config_check` doesn't show the navigation allowlist:** it lists signup targets and names `RBA_ALLOWED_ORIGINS` only when it is empty. To see the configured navigation origins, read `allowedNavigationOrigins` in the `session_start` result.
-- **Rejection words match the whole page:** `rejectionTexts` are checked against the whole page after submit. A word in the page's static text (`Invalid` on a login page) can mark a successful signup as rejected and quarantine the account.
-- **No username secret:** `browser_fill` secrets cover `account_email` and `account_password` only, so usernames are filled as plain values and aren't stored with the credentials.
-- **Main frame only:** element targeting works in the main frame only.
-- **Proxy limitations:**
-  - Proxy modes work only on Apify; off-platform the worker refuses Apify Proxy.
-  - The egress check compares IPs only.
-  - DNS for the policy check leaves from the container's resolver.
-  - Sticky sessions don't guarantee the same IP.
-  - The residential reserve is not a hard spending cap.
-- **Email:** the sender check reads MailSlurp's `From` address and doesn't verify DKIM. Verification links on click-tracking domains are rejected unless that domain is added as an auth origin.
-- **Platforms:** only macOS arm64 (Node 24.7) has been tested. Linux, Windows, Intel macOS and Node 22.13–23.x are untested ([docs/PLATFORMS.md](docs/PLATFORMS.md)). `local` mode is supported only in a source checkout.
-- **Recording:** video recording (`RBA_LOCAL_RECORD_VIDEO_DIR`, off by default) works only for `local`-mode workers. Remote Apify workers can't record, and there is no live view. It captures the page viewport only (no tool calls); while it is on, the default viewport becomes 1920×1080; and each page gets its own file. See [docs/demo/README.md](docs/demo/README.md#recording-support).
-- **Deleting a local record doesn't delete the website account.** `account_delete` reports `websiteAccount: "not_deleted"`.
-- The GitHub-hosted marketplace catalog in `release/` is prepared but **not tested end to end**.
+- **CAPTCHAs and human verification:** never solved or bypassed, and there is no stealth mode. On HTTP 403/429 or a challenge, the job ends `blocked` and the account is marked blocked or quarantined.
+- **Every signup gets an inbox**, even on sites that never ask for an email, and it counts against the MailSlurp quota.
+- **`config_check` doesn't list the configured navigation allowlist.** It names `RBA_ALLOWED_ORIGINS` only when that is empty; `session_start` returns `allowedNavigationOrigins`.
+- **Rejection words match the whole page.** A word in the page's own static text can mark a successful signup as rejected and quarantine the account.
+- **No username secret:** usernames are filled as plain values.
+- **Main frame only** for element targeting.
+- **Proxies:** only on Apify; the egress check compares IPs only; sticky sessions don't guarantee one IP; the residential reserve is not a hard cap.
+- **Email:** the sender check reads MailSlurp's `From` address (no DKIM). Click-tracking link domains must be added as auth origins.
+- **Platforms:** only macOS arm64 (Node 24.7) has been tested. `local` mode needs a source checkout.
+- **Recording:** `RBA_LOCAL_RECORD_VIDEO_DIR` works only for `local` workers, captures only the page viewport, and switches the viewport to 1920×1080 while it is on.
+- **`account_delete` doesn't delete the website account** (`websiteAccount: "not_deleted"`).
+- The GitHub-hosted marketplace catalog in `release/` has not been tested end to end.
 
----
+</details>
 
-## Troubleshooting
+<details>
+<summary><b>Troubleshooting</b></summary>
+
+<br/>
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Server `remote-browser` shows `CONNECTION_CLOSED` | Claude Code opened inside the repo loaded `.mcp.json` as a project server, and `${CLAUDE_PLUGIN_ROOT}` is unset | Use the plugin server `plugin:remote-browser-accounts:remote-browser`, and add `"disabledMcpjsonServers": ["remote-browser"]` to `.claude/settings.local.json` |
-| Two `remote-browser` entries in `/mcp`, or tools behave differently between sessions | The project copy and the plugin are both enabled (`enabledMcpjsonServers` / `enableAllProjectMcpServers`) | Keep only the plugin. Also run `claude plugin list` to check that it's installed once |
-| `.env` or code changes don't take effect | The server read its config and build at startup | Rebuild if needed, then reconnect the server via `/mcp` (or `/reload-plugins`). `config_check` → `build.loadedBuildMatchesRecord` must be `true` |
-| `navigation_blocked: … not in allowedNavigationOrigins` | The origin isn't in `RBA_ALLOWED_ORIGINS` (sessions without an account) | Add the exact origin, then reconnect |
-| `unauthorized_target: … not in RBA_AUTHORIZED_TARGETS` | Signup or account use on an origin that isn't authorised | Add it only if you are authorised to test it |
-| `egress_unverified` in `remote_proxy` | The proxy route couldn't be verified (or the IPs were the same) | Fail-closed by design. Try another proxy kind or country, or `npm run live-check -- --proxy=residential` |
-| Account `quarantined` after a signup that looks successful | A `rejectionTexts` entry matched the page's static text | Check on the site. If the signup really succeeded: `account_quarantine { accountId, lift: true, reason }` |
-| Job or account `blocked` | HTTP 403/429 or human verification | Stop and report. Don't retry with another account or proxy unless the user decides to |
-| `config_missing` | Variables are missing | `npm run check-config` lists the names |
-| Server won't start | Node too old, no build, or missing dependencies | Read the one stderr line from the launcher, then run `npm run doctor` |
-| Refusal that names two `.env` files | More than one install has data | Set `RBA_ENV_FILE` ([docs/INSTALL.md](docs/INSTALL.md#where-configuration-and-data-live)) |
+| `remote-browser` shows `CONNECTION_CLOSED` | `.mcp.json` loaded as a project server; `${CLAUDE_PLUGIN_ROOT}` unset | Use the plugin server; add `"disabledMcpjsonServers": ["remote-browser"]` |
+| Two `remote-browser` entries in `/mcp` | Project copy and plugin both enabled | Keep only the plugin; check `claude plugin list` |
+| `.env` or code changes don't take effect | Config and build are read at startup | Rebuild, then reconnect via `/mcp`; `config_check` → `build.loadedBuildMatchesRecord` must be `true` |
+| `navigation_blocked: … not in allowedNavigationOrigins` | Origin not in `RBA_ALLOWED_ORIGINS` | Add the exact origin, then reconnect |
+| `unauthorized_target` | Origin not in `RBA_AUTHORIZED_TARGETS` | Add it only if you are authorised to test it |
+| `egress_unverified` in `remote_proxy` | Proxy route couldn't be verified | By design (fail-closed); try another proxy kind or country |
+| Account `quarantined` after an apparently successful signup | A `rejectionTexts` entry matched the page's static text | Check the site; if it succeeded: `account_quarantine { accountId, lift: true, reason }` |
+| Job or account `blocked` | HTTP 403/429 or human verification | Stop and report; don't switch account or proxy unless the user decides |
+| `config_missing` | Variables missing | `npm run check-config` |
+| Server won't start | Node too old, no build, missing dependencies | Read the launcher's stderr line; `npm run doctor` |
 
----
+</details>
 
-## Project status and roadmap
+<details>
+<summary><b>Project status</b></summary>
 
-**Status:** research prototype, version `0.1.0`. Only the source-checkout install path is supported. Results apply to the builds named in the evidence.
+<br/>
 
-**Planned (not done).** These items come from the known limitations above:
-- [ ] `config_check` shows the configured navigation allowlist (`RBA_ALLOWED_ORIGINS`)
-- [ ] Rejection-text matching scoped to the submit response or a selector instead of the whole page
+**Research prototype, `0.1.0`.** Only the source-checkout install path is supported. Results apply to the builds named in the evidence.
+
+**Roadmap (planned, not done):**
+- [ ] `config_check` shows the configured navigation allowlist
+- [ ] Rejection-text matching scoped to the submit response or a selector
 - [ ] A username credential reference for `browser_fill`
 - [ ] No inbox for `account_register` on sites that don't ask for an email
-- [ ] Test runs on Linux, Windows and Intel macOS ([docs/PLATFORMS.md](docs/PLATFORMS.md))
+- [ ] Test runs on Linux, Windows and Intel macOS
 - [ ] An end-to-end test of the GitHub-hosted marketplace path (`release/`)
 - [ ] Live testing of verification email from a third-party site
 
-A fixed build gets its own version and its own validation. The 2026-10-27 runs are not evidence for it.
+A fixed build gets its own version and its own validation; the 2026-10-27 runs are not evidence for it.
 
----
+</details>
 
-## License
+<br/>
 
-MIT. See [LICENSE](LICENSE).
+<div align="center">
+
+<img src="assets/readme/divider.svg" alt="" width="100%" />
+
+<sub>MIT licensed ([LICENSE](LICENSE)) · AgentHarbor is the display name of the <code>remote-browser-accounts</code> plugin · Built for authorised testing only.</sub>
+
+</div>

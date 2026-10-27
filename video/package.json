@@ -1,0 +1,25 @@
+{
+  "name": "agentharbor-product-film",
+  "private": true,
+  "description": "Remotion composition for the AgentHarbor product film (docs/demo/agentharbor-product-film.mp4). Isolated from the plugin's dependencies.",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "still": "remotion still src/index.ts ProductFilm",
+    "preview": "remotion render src/index.ts ProductFilm out/preview.mp4 --scale=0.5 --crf=30",
+    "render": "remotion render src/index.ts ProductFilm out/agentharbor-product-film.mp4 --codec=h264 --crf=14 --pixel-format=yuv420p --x264-preset=slow --audio-codec=aac --audio-bitrate=192k",
+    "master": "scripts/master-audio.sh out/agentharbor-product-film.mp4 out/agentharbor-product-film-mastered.mp4",
+    "poster": "remotion still src/index.ts Poster out/agentharbor-product-film-poster.png"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.539",
+    "@remotion/google-fonts": "^4.0.539",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "remotion": "^4.0.539"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "typescript": "^5.9.3"
+  }
+}
