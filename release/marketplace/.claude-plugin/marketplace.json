@@ -1,0 +1,21 @@
+{
+  "name": "remote-browser-accounts-releases",
+  "owner": {
+    "name": "divyamkat"
+  },
+  "description": "Release catalog for the remote-browser-accounts Claude Code plugin (prepared, not tested end-to-end).",
+  "plugins": [
+    {
+      "name": "remote-browser-accounts",
+      "displayName": "Remote Browser Accounts",
+      "description": "Browser sessions (local or Apify), scraping and bounded crawls, MailSlurp verification email, and encrypted persistent website accounts. Bring your own Apify and MailSlurp credentials.",
+      "category": "automation",
+      "tags": ["browser", "automation", "scraping", "apify", "mailslurp", "mcp"],
+      "source": {
+        "source": "github",
+        "repo": "OWNER/REPO",
+        "ref": "release-0.1.0"
+      }
+    }
+  ]
+}

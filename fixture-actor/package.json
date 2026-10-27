@@ -1,0 +1,8 @@
+{
+  "name": "rba-practice-fixture",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Controlled test fixture for the remote-browser-accounts plugin: signup with real verification email, login, and an upload echo endpoint.",
+  "scripts": { "start": "node main.js" }
+}

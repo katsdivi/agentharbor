@@ -1,0 +1,9 @@
+node_modules
+dist
+storage
+apify_storage
+.git
+.DS_Store
+*.log
+.env
+.env.*

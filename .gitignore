@@ -1,0 +1,31 @@
+node_modules
+dist/
+actor/node_modules
+actor/dist/
+actor/storage/
+# secrets & local state
+.env
+.env.*
+!.env.example
+data/
+*.sqlite
+*.sqlite-*
+*.db
+*.key
+results/
+artifacts/
+uploads/
+coverage/
+.DS_Store
+# Claude Code local state (session locks, agent worktrees)
+.claude/*.lock
+.claude/worktrees/
+.claude/settings.local.json
+# backups made while editing local config
+*.bak
+*.bak-*
+.env.bak*
+# npm run package output
+pkg/
+*.tgz
+.aider*

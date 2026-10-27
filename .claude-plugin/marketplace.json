@@ -1,0 +1,16 @@
+{
+  "name": "remote-browser-accounts-local",
+  "owner": {
+    "name": "divyamkat"
+  },
+  "plugins": [
+    {
+      "name": "remote-browser-accounts",
+      "source": "./",
+      "description": "Remote browser automation, scraping, verification email and persistent accounts."
+    }
+  ],
+  "metadata": {
+    "description": "Local marketplace for the remote-browser-accounts plugin"
+  }
+}

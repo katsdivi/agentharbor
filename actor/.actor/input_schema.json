@@ -1,0 +1,59 @@
+{
+  "title": "Remote browser worker input",
+  "description": "Normally set by the orchestrator. Contains no secrets: only the sha256 of the session bearer token.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "protocolVersion": {
+      "title": "Protocol version",
+      "type": "integer",
+      "description": "Must be 1.",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "tokenHash": {
+      "title": "Token hash",
+      "type": "string",
+      "description": "Lowercase hex sha256 of the bearer token the orchestrator will use.",
+      "editor": "textfield",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "proxy": {
+      "title": "Proxy",
+      "type": "object",
+      "description": "{ mode: 'direct' | 'datacenter' | 'residential', country?: 'US', sessionKey?: string }",
+      "editor": "json"
+    },
+    "idleTimeoutSecs": {
+      "title": "Idle timeout (s)",
+      "type": "integer",
+      "description": "Exit when no authenticated request arrives for this long.",
+      "minimum": 1
+    },
+    "maxLifetimeSecs": {
+      "title": "Max lifetime (s)",
+      "type": "integer",
+      "description": "Hard cap on worker lifetime.",
+      "minimum": 1
+    },
+    "network": {
+      "title": "Network policy",
+      "type": "object",
+      "description": "{ allowedNavigationOrigins: string[], allowPrivateHosts: string[] }",
+      "editor": "json"
+    },
+    "egressCheckUrl": {
+      "title": "Egress check URL",
+      "type": "string",
+      "description": "IP echo endpoint returning JSON { clientIp }.",
+      "editor": "textfield"
+    },
+    "maxUploadBytes": {
+      "title": "Max upload bytes",
+      "type": "integer",
+      "description": "Max decoded size of a single upload.",
+      "minimum": 1
+    }
+  },
+  "required": ["protocolVersion", "tokenHash", "proxy", "idleTimeoutSecs", "maxLifetimeSecs", "network", "egressCheckUrl", "maxUploadBytes"]
+}

@@ -1,0 +1,35 @@
+{
+  "upstream": "https://github.com/goodnight000/api-anything",
+  "revision": "4a785e8d9e72a00e2dddc0dc56569a86826df07b",
+  "license": "MIT",
+  "verbatim": {
+    "types.ts": "a4d74bd761a8edb8b07e1f0ca57f9b97b6ceb66693e7d4ece914dfdc26d78d01",
+    "spec.ts": "b2c7d9ab94ec8c199373e5d67ffb88707215e9e48b0c8f358bcfade240d41ee5",
+    "codec.ts": "26db378efe3a439f0b5e6cbbdc9d1112d7d867499ed7fb1e335e9f14bed10f77",
+    "extract.ts": "49924f9dda37edb254cbab5f87fdb616591afa2de3650cee11d6757d6e93e3e0",
+    "classify.ts": "9feb6b9b0b87d1609e2925107fdd7323822ac1b7556a95518fe11144d2ba9b70",
+    "secrets.ts": "5c5fcf53a192f567a31149ae3f963789b424514cc29921a7d4f2cfd8adbdd8bf",
+    "learn.ts": "2e2f591476caaa45064e59927e698ae26fc6cecb7c04ccf59562e977b7c64554",
+    "LICENSE": "9c57c501762e9acf850474f081cdd44914f8820f0ca0099d54f8754109a47999"
+  },
+  "derived": {
+    "session.ts": {
+      "from": "src/session.ts",
+      "sha256": "eeb68b00dcd1d0a94ba90399214a7c117d93a553f8d1ea743afb76e7dc515731",
+      "note": "pure cookie helpers only; no file store, no tldts"
+    }
+  },
+  "notUsed": [
+    "http.ts",
+    "browser.ts",
+    "execute.ts",
+    "heal.ts",
+    "store.ts",
+    "session.ts (I/O parts)",
+    "login.ts",
+    "import.ts",
+    "outline.ts",
+    "cli.ts",
+    "mcp.ts"
+  ]
+}

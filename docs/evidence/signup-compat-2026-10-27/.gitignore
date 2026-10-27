@@ -1,0 +1,10 @@
+# Only sanitized notes and screenshots belong here. Never commit browser state,
+# cookies, HAR/network logs, inbox exports, or anything carrying credentials.
+*.json
+*.har
+*.har.*
+*cookie*
+*storage-state*
+*session-state*
+*.eml
+*.env

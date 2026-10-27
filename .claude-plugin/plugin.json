@@ -1,0 +1,9 @@
+{
+  "name": "remote-browser-accounts",
+  "displayName": "Remote Browser Accounts",
+  "version": "0.1.0",
+  "description": "Remote (Apify) browser sessions for navigation, scraping and bounded crawls, MailSlurp verification email, and encrypted persistent website accounts with exclusive leases.",
+  "author": { "name": "divyamkat" },
+  "license": "MIT",
+  "keywords": ["browser", "automation", "scraping", "apify", "mailslurp", "mcp"]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "remote-browser": {
+      "command": "node",
+      "args": ["--disable-warning=ExperimentalWarning", "${CLAUDE_PLUGIN_ROOT}/scripts/start-mcp.mjs"]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "actorSpecification": 1,
+  "name": "rba-practice-fixture",
+  "title": "RBA controlled test fixture",
+  "description": "Test-only site for the remote-browser-accounts plugin. Not a real service.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "usesStandbyMode": false,
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile"
+}

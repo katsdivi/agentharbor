@@ -1,0 +1,66 @@
+{
+  "name": "remote-browser-accounts",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Claude Code plugin: remote (Apify) browser sessions, scraping, MailSlurp verification email and encrypted persistent website accounts.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "files": [
+    ".claude-plugin/plugin.json",
+    ".mcp.json",
+    "skills/",
+    "dist/",
+    "!dist/**/*.map",
+    "src/",
+    "tsconfig.json",
+    "actor/dist/",
+    "actor/src/",
+    "actor/.actor/",
+    "actor/Dockerfile",
+    "actor/package.json",
+    "actor/package-lock.json",
+    "actor/tsconfig.json",
+    "scripts/start-mcp.mjs",
+    "scripts/build-info.mjs",
+    ".env.example",
+    "docs/INSTALL.md",
+    "docs/PLATFORMS.md",
+    "docs/FILES.md",
+    "docs/MODES.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/build-info.mjs && npm --prefix actor run build",
+    "build:server": "tsc -p tsconfig.json && node scripts/build-info.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && npm --prefix actor run typecheck",
+    "setup": "npm ci && npm --prefix actor ci && npm run build && node dist/src/cli/init-env.js",
+    "init-env": "node --disable-warning=ExperimentalWarning dist/src/cli/init-env.js",
+    "check-config": "node --disable-warning=ExperimentalWarning dist/src/cli/check-config.js",
+    "deploy-actor": "node dist/src/cli/deploy-actor.js",
+    "live-check": "node dist/src/cli/live-check.js",
+    "dashboard": "node dist/src/dashboard/main.js",
+    "mcp": "node dist/src/mcp/index.js",
+    "test": "npm run build && vitest run",
+    "test:unit": "vitest run test/unit",
+    "test:integration": "npm run build && vitest run test/integration",
+    "test:e2e": "npm run build && vitest run -c vitest.e2e.config.ts",
+    "doctor": "node --disable-warning=ExperimentalWarning dist/src/cli/doctor.js",
+    "migrate-data": "node --disable-warning=ExperimentalWarning dist/src/cli/migrate-data.js",
+    "clean-plugin-cache": "node --disable-warning=ExperimentalWarning dist/src/cli/clean-plugin-cache.js",
+    "package": "npm run build && node scripts/package.mjs",
+    "smoke:install": "node scripts/clean-install-smoke.mjs"
+  },
+  "dependencies": {
+    "@cantoo/pdf-lib": "2.11.1",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "node-html-parser": "9.0.4",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

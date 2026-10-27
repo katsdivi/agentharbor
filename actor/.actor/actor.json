@@ -1,0 +1,11 @@
+{
+  "actorSpecification": 1,
+  "name": "remote-browser-worker",
+  "title": "Remote browser worker",
+  "description": "One isolated Playwright Chromium session per run, controlled over an authenticated HTTPS API on the run's container URL.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "usesStandbyMode": false,
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile"
+}

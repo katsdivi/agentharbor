@@ -1,0 +1,23 @@
+{
+  "name": "remote-browser-worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remote browser worker Actor: one isolated Playwright Chromium session per Actor run.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "apify": "3.7.2",
+    "playwright": "1.64.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

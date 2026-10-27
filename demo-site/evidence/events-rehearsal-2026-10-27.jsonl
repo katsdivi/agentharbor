@@ -1,0 +1,13 @@
+{"at":"2026-10-27T08:29:08.517Z","event":"server_started","port":4400,"mailMode":"smtp"}
+{"at":"2026-10-27T08:29:09.538Z","event":"challenge_issued","challenge":"8bf57389","gridTarget":"square"}
+{"at":"2026-10-27T08:29:18.919Z","event":"server_started","port":4400,"mailMode":"smtp"}
+{"at":"2026-10-27T08:29:26.184Z","event":"challenge_issued","challenge":"8059dd39","gridTarget":"triangle"}
+{"at":"2026-10-27T08:29:26.204Z","event":"signup_attempt","challenge":"8059dd39","fillSecs":"0.0","textCaptcha":"fail","gridCaptcha":"fail"}
+{"at":"2026-10-27T08:29:26.211Z","event":"challenge_issued","challenge":"cc6ad13c","gridTarget":"square"}
+{"at":"2026-10-27T08:29:26.219Z","event":"rejected","reason":"honeypot"}
+{"at":"2026-10-27T08:29:26.224Z","event":"challenge_issued","challenge":"8351e6ab","gridTarget":"triangle"}
+{"at":"2026-10-27T08:29:41.288Z","event":"challenge_issued","challenge":"b8d6d0de","gridTarget":"pentagon"}
+{"at":"2026-10-27T08:30:39.216Z","event":"signup_attempt","challenge":"b8d6d0de","fillSecs":"57.9","textCaptcha":"pass","gridCaptcha":"pass"}
+{"at":"2026-10-27T08:30:39.219Z","event":"account_created","fillSecs":"57.9"}
+{"at":"2026-10-27T08:30:40.037Z","event":"email_sent","ok":true,"via":"smtp mxslurp.click:25"}
+{"at":"2026-10-27T08:30:58.222Z","event":"email_verified","via":"code","formToVerifiedSecs":"76.9"}

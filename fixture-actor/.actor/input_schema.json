@@ -1,0 +1,32 @@
+{
+  "title": "RBA fixture input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "allowedRecipientDomains": {
+      "title": "Allowed recipient domains",
+      "type": "array",
+      "editor": "stringList",
+      "description": "Verification email is only sent to addresses on these domains."
+    },
+    "maxEmails": {
+      "title": "Max emails per run",
+      "type": "integer",
+      "default": 3,
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Upper bound on verification emails sent by one run."
+    },
+    "lifetimeSecs": {
+      "title": "Lifetime (s)",
+      "type": "integer",
+      "default": 900,
+      "minimum": 60,
+      "maximum": 3600,
+      "description": "The fixture exits after this many seconds."
+    }
+  },
+  "required": [
+    "allowedRecipientDomains"
+  ]
+}
